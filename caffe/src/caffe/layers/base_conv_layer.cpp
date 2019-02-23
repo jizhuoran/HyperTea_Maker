@@ -70,34 +70,46 @@ std::string BaseConvolutionLayer<Dtype>::get_cpu_signature(const vector<Blob<Dty
   std::stringstream signature_ss;
 
 
-  signature_ss << weight_name << ", " << bias_name << ", "
-    << bottom[0]->count() << ", "
-    << bottom.size() << ", "
-    << top[0]->count() << ", "
+  // signature_ss << weight_name << ", " << bias_name << ", "
+  //   << bottom_dim_ << ", "
+  //   << bottom.size() << ", "
+  //   << top_dim_ << ", "
 
-    << num_ << ", "
-    << channels_ << ", "
+  //   << num_ << ", "
+  //   << channels_ << ", "
+  //   << group_ << ", "
+  //   << weight_offset_ << ", "
+  //   << num_output_ << ", "
+  //   << out_spatial_dim_ << ", "
+  //   << bool2string(is_1x1_) << ", "
+  //   << bool2string(force_nd_im2col_) << ", "
+
+  //   << conv_out_channels_ << ", "
+  //   << conv_in_channels_ << ", "
+  //   << conv_out_spatial_dim_ << ", "
+  //   << kernel_dim_ << ", "
+  //   << col_offset_ << ", "
+  //   << output_offset_ << ", "
+
+  //   << num_spatial_axes_ << ", "
+  //   << var2string(kernel_shape_) << ", "
+  //   << var2string(stride_) << ", "
+  //   << var2string(pad_) << ", "
+  //   << var2string(dilation_) << ", "
+  //   << var2string(conv_input_shape_) << ", "
+  //   << var2string(col_buffer_shape_);
+
+
+    signature_ss << weight_name << ", " << bias_name << ", "
     << group_ << ", "
-    << weight_offset_ << ", "
-    << num_output_ << ", "
-    << out_spatial_dim_ << ", "
     << bool2string(is_1x1_) << ", "
-    << bool2string(force_nd_im2col_) << ", "
-
-    << conv_out_channels_ << ", "
-    << conv_in_channels_ << ", "
-    << conv_out_spatial_dim_ << ", "
-    << kernel_dim_ << ", "
-    << col_offset_ << ", "
-    << output_offset_ << ", "
-
-    << num_spatial_axes_ << ", "
     << var2string(kernel_shape_) << ", "
     << var2string(stride_) << ", "
     << var2string(pad_) << ", "
     << var2string(dilation_) << ", "
-    << var2string(conv_input_shape_) << ", "
-    << var2string(col_buffer_shape_);
+    << var2string(bottom[0]->shape()) << ", "
+    << var2string(top[0]->shape()) << ", "
+    << bool2string(force_nd_im2col_);
 
   return signature_ss.str();
 

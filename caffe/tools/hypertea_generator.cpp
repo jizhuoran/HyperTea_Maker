@@ -43,12 +43,12 @@ int main(int argc, char** argv) {
 
   _net->Forward();
 
-  std::cout << caffe::hypertea_func::Get().hypertea_gpu(argv_fake[3]) << std::endl;
+  std::cout << caffe::hypertea_func::Get().hypertea_cpu(argv_fake[3]) << std::endl;
 
 
-  std::ofstream myfile ("/home/zrji/hypertea/tools/demo_net_gpu.hpp");
+  std::ofstream myfile ("/home/zrji/hypertea/tools/reference.hpp");
   if (myfile.is_open()) {
-    myfile << caffe::hypertea_func::Get().hypertea_gpu(argv_fake[3]) << std::endl;
+    myfile << caffe::hypertea_func::Get().hypertea_cpu(argv_fake[3]) << std::endl;
 
   } else {
     std::cout << "wanner???" << std::endl;

@@ -324,8 +324,11 @@ std::string hypertea_func::cpu_inoutputs_defs() {
       std::string name = inoutput.first;
       auto info = inoutput.second;
       
-      ss << this->dtype_ << "* " << name << "_data = ("
-         << this->dtype_ << " *)malloc(" << this->dtype_size_ * info.length_ << ");" << std::endl;
+      ss << "Tensor<" << this->dtype_ << ">" << name << "_data"
+         << "(" << info.length_ << ");" << std::endl;
+
+      // ss << this->dtype_ << "* " << name << "_data = ("
+      //    << this->dtype_ << " *)malloc(" << this->dtype_size_ * info.length_ << ");" << std::endl;
 
     }
 
