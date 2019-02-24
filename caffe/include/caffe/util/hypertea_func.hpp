@@ -59,6 +59,28 @@ public:
 
 
 
+class FlySignature
+{
+public:
+
+	FlySignature(std::string op_type,
+			std::string op_name,
+			std::vector<std::string> inputs_name,
+			std::vector<std::string> outputs_name) :
+	op_type_(op_type),
+	op_name_(op_name),
+	inputs_name_(inputs_name),
+	outputs_name_(outputs_name) { }
+	~FlySignature() { }
+	
+	std::string op_type_, op_name_;
+
+	std::vector<std::string> inputs_name_;
+	std::vector<std::string> outputs_name_;
+};
+
+
+
 
 class hypertea_func
 {
@@ -77,6 +99,7 @@ public:
 	void append_op_params(std::vector<std::pair<std::string, FlyArray>> parameter);
 	void append_op_inoutputs(std::vector<std::pair<std::string, FlyArray>> inoutputs);
 	void append_op_inference(std::string inference_signature);
+	void append_op_inference(FlySignature signature);
 
 	std::string hypertea_cpu(std::string net_name);
 	std::string hypertea_gpu(std::string net_name);
@@ -121,6 +144,8 @@ private:
 
 	// std::stringstream op_run;
 	std::vector<std::string> op_run;
+
+	std::vector<FlySignature> op_inference;
 
 	std::vector<FlyDefs> hypertea_op_defs;
 	std::map<std::string, FlyArray> hypertea_inoutputs;

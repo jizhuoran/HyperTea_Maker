@@ -62,6 +62,7 @@ class Layer {
                               const vector<Blob<Dtype>*>& top);
 
   std::string get_forward_signature();
+  FlySignature get_forward_signature_general();
 
 
   virtual std::string get_cpu_signature(const vector<Blob<Dtype>*>& bottom,

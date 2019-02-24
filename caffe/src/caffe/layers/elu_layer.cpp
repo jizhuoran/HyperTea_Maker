@@ -11,7 +11,7 @@ std::string ELULayer<Dtype>::get_cpu_signature(const vector<Blob<Dtype>*>& botto
   
   std::stringstream signature_ss;
 
-  signature_ss << bottom[0]->count() << ", " << this->layer_param_.elu_param().alpha();
+  signature_ss << this->layer_param_.elu_param().alpha();
 
   return signature_ss.str();
 

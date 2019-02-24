@@ -11,7 +11,7 @@ std::string ReLULayer<Dtype>::get_cpu_signature(const vector<Blob<Dtype>*>& bott
   
   std::stringstream signature_ss;
 
-  signature_ss << bottom[0]->count() << ", " << this->layer_param_.relu_param().negative_slope();
+  signature_ss << this->layer_param_.relu_param().negative_slope();
 
   return signature_ss.str();
 
