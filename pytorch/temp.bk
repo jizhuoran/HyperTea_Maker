@@ -1,0 +1,22 @@
+
+names = ['conv1_weight', 'conv1_bias', 'scale1_scale', 'scale1_bias', 'conv2_weight', 'conv2_bias', 'scale2_scale', 'scale2_bias', 'conv3_weight', 'conv3_bias', 'scale3_scale', 'scale3_bias', 'res1_conv1_weight', 'res1_scale1_scale', 'res1_scale1_bias', 'res1_conv2_weight', 'res1_scale2_scale', 'res1_scale2_bias', 'res2_conv1_weight', 'res2_scale1_scale', 'res2_scale1_bias', 'res2_conv2_weight', 'res2_scale2_scale', 'res2_scale2_bias', 'res3_conv1_weight', 'res3_scale1_scale', 'res3_scale1_bias', 'res3_conv2_weight', 'res3_scale2_scale', 'res3_scale2_bias', 'res4_conv1_weight', 'res4_scale1_scale', 'res4_scale1_bias', 'res4_conv2_weight', 'res4_scale2_scale', 'res4_scale2_bias', 'res5_conv1_weight', 'res5_scale1_scale', 'res5_scale1_bias', 'res5_conv2_weight', 'res5_scale2_scale', 'res5_scale2_bias', 'deconv5_1_weight', 'deconv5_1_bias', 'deconv5_1_bn_sc_scale', 'deconv5_1_bn_sc_bias', 'deconv5_2_weight', 'deconv5_2_bias', 'deconv5_2_bn_sc_scale', 'deconv5_2_bn_sc_bias', 'deconv5_3_weight', 'deconv5_3_bias', 'image_scale1_scale', 'image_scale1_bias', 'image_scale2_scale']
+
+
+
+temp = [0, 31104, 31232, 31360, 31488, 162560, 162816, 163072, 163328, 687616, 688128, 688640, 689152, 1278976, 1279488, 1280000, 1869824, 1870336, 1870848, 2460672, 2461184, 2461696, 3051520, 3052032, 3052544, 3642368, 3642880, 3643392, 4233216, 4233728, 4234240, 4824064, 4824576, 4825088, 5414912, 5415424, 5415936, 6005760, 6006272, 6006784, 6596608, 6597120, 6597632, 7121920, 7122176, 7122432, 7122688, 7253760, 7253888, 7254016, 7254144, 7285248, 7285260, 7285272, 7285284]
+
+import numpy as np
+
+temp = np.array(temp) // 4
+
+print(temp)
+
+ranges = []
+
+for i in range(len(temp) - 1):
+    # print('[{}:{}]'.format(temp[i], temp[i+1]))
+    ranges.append('[{}:{}]'.format(temp[i], temp[i+1]))
+
+for name, rang in zip(names, ranges):
+    print('{} = float_array{}'.format(name, rang))
+
