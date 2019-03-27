@@ -59,11 +59,12 @@ std::string ScaleLayer<Dtype>::get_cpu_signature(const vector<Blob<Dtype>*>& bot
     const vector<Blob<Dtype>*>& top) {
   
   std::string bias_name = (this->bias_layer_) ? (this->layer_param_.name() + "_bias") : "NULL";
+  std::string inplace = bottom[0] == top[0] ? "IN_PLACE":"NOT_INPLACE";
 
   std::stringstream signature_ss;
 
-  signature_ss << top[0]->count() << ", " << bias_name << ", " << this->layer_param_.name() + "_scale" << ", "
-               << scale_dim_ << ", " << outer_dim_ << ", " << inner_dim_;
+  signature_ss << bias_name << ", " << this->layer_param_.name() + "_scale" << ", "
+               << scale_dim_ << ", " << outer_dim_ << ", " << inner_dim_ << ", " << inplace;
 
   return signature_ss.str();
 

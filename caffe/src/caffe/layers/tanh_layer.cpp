@@ -7,17 +7,18 @@
 
 namespace caffe {
 
-// template <typename Dtype>
-// std::string TanHLayer<Dtype>::get_cpu_signature(const vector<Blob<Dtype>*>& bottom,
-//     const vector<Blob<Dtype>*>& top) {
+template <typename Dtype>
+std::string TanHLayer<Dtype>::get_cpu_signature(const vector<Blob<Dtype>*>& bottom,
+    const vector<Blob<Dtype>*>& top) {
   
-//   std::stringstream signature_ss;
+  std::stringstream signature_ss;
+  std::string inplace = bottom[0] == top[0] ? "IN_PLACE":"NOT_INPLACE";
 
-//   signature_ss << bottom[0]->count();
+  signature_ss << inplace;
 
-//   return signature_ss.str();
+  return signature_ss.str();
 
-// }
+}
 
 template <typename Dtype>
 void TanHLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,

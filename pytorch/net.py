@@ -8,7 +8,7 @@ class LSTMClassifier(nn.Module):
 
         self.conv1      = nn.Conv2d(3, 32, kernel_size=9, stride=1, padding = 4, bias=True)
         self.elu1       = nn.ELU()
-        self.bn1        = nn.BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        self.bn1        = nn.BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=False)
 
         self.conv2      = nn.Conv2d(32, 64, kernel_size=4, stride=2, padding = 1, bias=True)
         self.elu2       = nn.ELU()
@@ -64,19 +64,7 @@ class LSTMClassifier(nn.Module):
 
     def forward(self, data):
 
-        temp = self.elu1(self.conv1(data))
-
-        self.bn1.weight.data = torch.ones(self.bn1.weight.data.shape)
-        self.bn1.bias.data = torch.zeros(self.bn1.bias.data.shape)
-
-        print(temp.reshape(-1).data[:10])
-
-        temp = self.bn1(temp)
-        print(self.bn1.running_mean.shape)
-        
-        exit(0)
-
-
+        temp = self.bn1(self.elu1(self.conv1(data)))
         temp = self.bn2(self.elu2(self.conv2(temp)))
         temp = self.bn3(self.elu3(self.conv3(temp)))
 
@@ -86,13 +74,10 @@ class LSTMClassifier(nn.Module):
         temp += self.res4_bn2(self.res4_conv2(self.res4_relu1(self.res4_bn1(self.res4_conv1(temp)))))
         temp += self.res5_bn2(self.res5_conv2(self.res5_relu1(self.res5_bn1(self.res5_conv1(temp)))))
 
-        
-
         temp = self.de_bn1(self.de_elu1(self.deconv1(temp)))
         temp = self.de_bn2(self.de_elu2(self.deconv2(temp)))
         temp = self.de_tanh3(self.deconv3(temp))
 
         temp = (temp + 1) * 127.5
-
 
         return temp

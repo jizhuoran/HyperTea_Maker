@@ -100,8 +100,8 @@ std::string hypertea_func::gpu_op_defs() {
 
 
 
-std::string desplit(std::string name, std::map<std::string, std::string> split_tracker) {
-  return split_tracker.find(name) == split_tracker.end() ? name : split_tracker[name];
+std::string map_name(std::string name, std::map<std::string, std::string> map) {
+  return map.find(name) == map.end() ? name : map[name];
 }
 
 
@@ -114,6 +114,8 @@ void print_refer_map(std::map<std::string, int> refer_map) {
 
 }
 
+
+/*
 std::string hypertea_func::cpu_op_runs() { 
   
   std::stringstream ss;
@@ -291,8 +293,204 @@ std::string hypertea_func::cpu_op_runs() {
       ss << output_name << "_data = " << op_para.op_name_ << "(" << input_name << "_data);" << std::endl;
       std::cout << output_name << "_data = " << op_para.op_name_ << "(" << input_name << "_data);" << std::endl;
 
+    }
+
+  }
 
 
+
+
+  return ss.str();
+
+}
+*/
+
+
+void hypertea_func::map_split_name_back() {
+
+
+//In Caffe, the blob used by more than 1 layer will be splited into several new blobs
+//with automatic generated name. This function get the map generated_name->origin_name
+
+    std::map<std::string, std::string> map;
+
+    for(auto const& op_para:op_inference) {
+      if (op_para.op_type_ == "Split") {
+        std::string input_name = op_para.inputs_name_[0];
+        for(auto const& output_name:op_para.outputs_name_) {
+          map[output_name] = input_name;
+        }
+      }
+    }
+
+
+    for(auto & op_para:op_inference) {
+      for(auto & input_name:op_para.inputs_name_) {
+        input_name = map_name(input_name, map);
+      }
+      for(auto & output_name:op_para.outputs_name_) {
+        output_name = map_name(output_name, map);
+      }
+    }
+  
+}
+
+
+
+
+int find_max_sublist (std::vector<int> l) {
+    
+    int max_ending_here = l[0];
+    int max_so_far = l[0];
+
+    for (auto x = std::next(l.begin()); x != l.end(); ++x) {
+      max_ending_here = std::max(*x, max_ending_here + *x);
+      max_so_far = std::max(max_so_far, max_ending_here);
+    }
+
+    return max_so_far;
+}
+
+
+
+std::map<std::string, int> hypertea_func::get_names_max_refer_time() {
+
+  std::map<std::string, std::vector<int> > name_refer_count;
+
+  for(auto const& op_para:op_inference) {
+    
+    for(auto const& input_name:op_para.inputs_name_) {
+      name_refer_count[input_name].push_back(-1);
+    }
+
+    for(auto const& output_name:op_para.outputs_name_) {
+      name_refer_count[output_name].push_back(1);
+    }
+
+  }
+
+  std::map<std::string, int > name_max_refer;
+
+  for(auto const& name_reference:name_refer_count) {
+    name_max_refer[name_reference.first] = std::abs(find_max_sublist(name_reference.second));
+  }
+
+  return name_max_refer;
+
+}
+
+
+
+std::string append_declare_if_need(std::string name, 
+                                   std::set<std::string> &defined_name,
+                                   std::map<std::string, int> &refer_count) {
+  
+  if (defined_name.find(name) == defined_name.end()) {
+    defined_name.insert(name);
+    refer_count[name] -= 1;
+    return "auto " + name;
+  }
+
+  return name;
+}
+
+
+
+
+
+std::string hypertea_func::cpu_op_runs() { 
+  
+  std::stringstream ss;
+  
+  map_split_name_back();
+
+  std::map<std::string, std::vector<int> > name_reference_count;
+
+
+  std::map<std::string, int > name_max_reference = get_names_max_refer_time();
+
+  std::set<std::string> defined_tensor(input_names.begin(), input_names.end());
+
+
+  // std::map<std::string, std::string> name_map;
+
+
+  for(auto const& op_para:op_inference) {
+    
+    if (op_para.op_type_ == "Eltwise") {
+
+
+      std::string lhs_input = map_name(op_para.inputs_name_[0], name_map);
+      std::string rhs_input = map_name(op_para.inputs_name_[1], name_map);
+      std::string output_name = map_name(op_para.outputs_name_[0], name_map);
+
+      name_max_reference[lhs_input] -= 1;
+      name_max_reference[rhs_input] -= 1;
+      name_max_reference[output_name] += 1;
+
+
+      bool lhf_free = name_max_reference[lhs_input] == 0;
+      bool rhf_free = name_max_reference[rhs_input] == 0;
+
+
+      if (lhf_free) {
+          name_map[output_name] = lhs_input;
+          name_max_reference[lhs_input] = name_max_reference[output_name] - 1;
+          name_max_reference[output_name] = 0;
+
+          if(rhf_free) { 
+            name_max_reference[rhs_input] = 0;
+          }
+
+      } else if (rhf_free) {
+          name_map[output_name] = rhs_input;
+          name_max_reference[rhs_input] = name_max_reference[output_name] - 1;
+          name_max_reference[output_name] = 0;
+
+      } 
+
+      output_name = map_name(output_name, name_map);
+
+      print_refer_map(name_max_reference);
+
+
+      output_name = append_declare_if_need(output_name, defined_tensor, name_max_reference);
+
+      if(lhs_input == output_name) {
+        ss << output_name << "_data += " << rhs_input << "_data;" << std::endl;
+      } else if (rhs_input == output_name){
+        ss << output_name << "_data += " << lhs_input << "_data;" << std::endl;
+      } else {
+        ss << output_name << "_data = " << lhs_input << "_data + "<< rhs_input << "_data;" << std::endl;
+      }
+
+
+      std::cout << output_name << "_data = " << lhs_input << "_data + "<< rhs_input << "_data;" << std::endl;
+
+    } else if (op_para.op_type_ != "Split") {
+
+      std::string input_name = map_name(op_para.inputs_name_[0], name_map);
+      std::string output_name = map_name(op_para.outputs_name_[0], name_map);
+
+      name_max_reference[input_name] -= 1;
+      name_max_reference[output_name] += 1;
+
+
+      if (name_max_reference[input_name] == 0) {
+          name_map[output_name] = input_name;
+          name_max_reference[input_name] = name_max_reference[output_name] - 1;
+          name_max_reference[output_name] = 0;
+      }
+
+
+      output_name = map_name(output_name, name_map);
+
+      output_name = append_declare_if_need(output_name, defined_tensor, name_max_reference);
+
+      print_refer_map(name_max_reference);
+
+      ss << output_name << "_data = " << op_para.op_name_ << "(" << input_name << "_data);" << std::endl;
+      std::cout << output_name << "_data = " << op_para.op_name_ << "(" << input_name << "_data);" << std::endl;
 
     }
 
@@ -304,6 +502,7 @@ std::string hypertea_func::cpu_op_runs() {
   return ss.str();
 
 }
+
 
 std::string hypertea_func::gpu_op_runs() { 
   
@@ -611,13 +810,13 @@ std::string hypertea_func::copy_data_cpu(bool from_user) {
   
   if (from_user) {
     for (auto const & input_name : input_names) {
-      ss << "Tensor<" << this->dtype_ << "> " << input_name + "_data"
+      ss << "TensorCPU<" << this->dtype_ << "> " << input_name + "_data"
          << "(" << input_name + "_from_user" << ");" << std::endl;
     }
   } else {
     for (auto const & output_name : output_names) {
       ss << "hypertea_copy(" << output_name + "_to_user" << ".size(), "
-         << output_name + "_data.data(), "
+         << map_name(output_name, name_map) + "_data.immutable_data(), "
          << output_name + "_to_user" << ".data()" << ");" << std::endl;
     }
   }
@@ -635,17 +834,13 @@ std::string hypertea_func::copy_data_gpu(bool from_user) {
   if (from_user) {
 
     for (auto const & input_name : input_names) {
-      ss << "OPENCL_CHECK(clEnqueueWriteBuffer(OpenCLHandler::Get().commandQueue, "
-         << input_name + "_data" << ", "
-         << "CL_TRUE, 0, "
-         << input_name + "_from_user" << ".size() * sizeof(" << input_name + "_from_user[0]" << "), "
-         << input_name + "_from_user" << ".data(), "
-         << "0, NULL, NULL));" << std::endl;
+      ss << "TensorGPU<" << this->dtype_ << "> " << input_name + "_data"
+         << "(" << input_name + "_from_user" << ");" << std::endl;
     }
   } else {
     for (auto const & output_name : output_names) {
       ss << "OPENCL_CHECK(clEnqueueReadBuffer(OpenCLHandler::Get().commandQueue, "
-         << output_name + "_data" << ", "
+         << map_name(output_name, name_map) + "_data.immutable_data()" << ", "
          << "CL_TRUE, 0, "
          << output_name + "_to_user" << ".size() * sizeof(" << output_name + "_to_user[0]" << "), "
          << output_name + "_to_user" << ".data(), "
@@ -659,6 +854,9 @@ std::string hypertea_func::copy_data_gpu(bool from_user) {
 
 
 std::string hypertea_func::hypertea_cpu(std::string net_name) {
+
+  name_map.clear();
+
 
   std::stringstream ss;
 
@@ -719,6 +917,8 @@ std::string hypertea_func::hypertea_cpu(std::string net_name) {
 
 std::string hypertea_func::hypertea_gpu(std::string net_name) {
 
+  name_map.clear();
+
   save_conv_file(net_name);
 
   std::stringstream ss;
@@ -749,7 +949,7 @@ std::string hypertea_func::hypertea_gpu(std::string net_name) {
 
   ss << "void inference( " << inference_signature() << ") { " << std::endl << std::endl << std::endl;
 
-    ss << gpu_inoutputs_defs() << std::endl << std::endl;
+    // ss << gpu_inoutputs_defs() << std::endl << std::endl;
 
     ss << copy_data_gpu(true) << std::endl << std::endl;
 
@@ -757,7 +957,7 @@ std::string hypertea_func::hypertea_gpu(std::string net_name) {
 
     ss << copy_data_gpu(false) << std::endl << std::endl;
 
-    ss << gpu_free_inoutputs() << std::endl << std::endl;
+    // ss << gpu_free_inoutputs() << std::endl << std::endl;
 
   ss << "}" << std::endl << std::endl << std::endl;
 

@@ -10,8 +10,9 @@ std::string ELULayer<Dtype>::get_cpu_signature(const vector<Blob<Dtype>*>& botto
     const vector<Blob<Dtype>*>& top) {
   
   std::stringstream signature_ss;
+  std::string inplace = bottom[0] == top[0] ? "IN_PLACE":"NOT_INPLACE";
 
-  signature_ss << this->layer_param_.elu_param().alpha();
+  signature_ss << this->layer_param_.elu_param().alpha() << ", " << inplace;
 
   return signature_ss.str();
 

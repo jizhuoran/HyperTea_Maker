@@ -1,6 +1,69 @@
 from functools import reduce
 import itertools
 
+
+class LibdnnGenerator(object):
+  """docstring for LibdnnGenerator"""
+  def __init__(self, precision, kernels):
+    super(LibdnnGenerator, self).__init__()
+    self.precision = precision
+
+    self.libdnn_conv_code = ''.join(kernels)
+
+    self.header = '''
+#define Dtype {0}
+#define Dtype1 {0}
+#define Dtype2 {0}2
+#define Dtype4 {0}4
+#define Dtype8 {0}8
+#define Dtype16 {0}16
+#define VEC_1_0(X) X
+#define VEC_2_0(X) X.x
+#define VEC_2_1(X) X.y
+#define VEC_4_0(X) X.x
+#define VEC_4_1(X) X.y
+#define VEC_4_2(X) X.z
+#define VEC_4_3(X) X.w
+#define VEC_8_0(X) X.s0
+#define VEC_8_1(X) X.s1
+#define VEC_8_2(X) X.s2
+#define VEC_8_3(X) X.s3
+#define VEC_8_4(X) X.s4
+#define VEC_8_5(X) X.s5
+#define VEC_8_6(X) X.s6
+#define VEC_8_7(X) X.s7
+#define VEC_16_0(X) X.s0
+#define VEC_16_1(X) X.s1
+#define VEC_16_2(X) X.s2
+#define VEC_16_3(X) X.s3
+#define VEC_16_4(X) X.s4
+#define VEC_16_5(X) X.s5
+#define VEC_16_6(X) X.s6
+#define VEC_16_7(X) X.s7
+#define VEC_16_8(X) X.s8
+#define VEC_16_9(X) X.s9
+#define VEC_16_10(X) X.sA
+#define VEC_16_11(X) X.sB
+#define VEC_16_12(X) X.sC
+#define VEC_16_13(X) X.sD
+#define VEC_16_14(X) X.sE
+#define VEC_16_15(X) X.sF
+    '''.format(self.precision)
+
+
+
+  def generate_conv_code(self):
+
+    return f'''
+std::string conv_opencl_funcs = R"(
+{self.header}
+{self.libdnn_conv_code}
+)";
+        '''
+
+
+    
+
 class Libdnn(object):
     """docstring for Libdnn"""
     def __init__(self, 

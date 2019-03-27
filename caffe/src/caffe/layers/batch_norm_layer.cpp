@@ -46,13 +46,14 @@ std::string BatchNormLayer<Dtype>::get_cpu_signature(const vector<Blob<Dtype>*>&
   const float scale_factor = this->blobs_[2]->cpu_data()[0] == 0 ?
         0 : 1 / this->blobs_[2]->cpu_data()[0];
 
+  std::string inplace = bottom[0] == top[0] ? "IN_PLACE":"NOT_INPLACE";
 
 
   std::stringstream signature_ss;
 
   signature_ss << top[0]->count() << ", " << bottom[0]->shape(0) << ", " << channels_ << ", "
                << eps_ << ", " << scale_factor << ", " << use_global_stats << ", "
-               << mean_name << ", " << variance_name;
+               << mean_name << ", " << variance_name << ", " << "NULL, NULL, " << inplace;
 
   return signature_ss.str();
 

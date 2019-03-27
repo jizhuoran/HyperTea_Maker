@@ -200,7 +200,7 @@ std::string conv_opencl_funcs = R"(#define Dtype float
 __kernel
 __attribute__((reqd_work_group_size(16, 4, 1)))
 __attribute__((vec_type_hint(Dtype4)))
-void conv1_forward(__global const Dtype* __restrict im_in, __global const Dtype* __restrict wg, __global const Dtype* __restrict bias, __global Dtype* __restrict im_out) {
+void conv1_forward(__global const Dtype* __restrict im_in, __global const Dtype* __restrict wg, __global Dtype* __restrict im_out, __global const Dtype* __restrict bias) {
 const int tidn = get_local_id(0);
 const int tidm = get_local_id(1);
 const int offN = TSN*get_group_id(0);
@@ -511,7 +511,7 @@ Cptr[globalRow * N + globalCol] = ((Dtype*)(&(Creg[wm][wn/VWN])))[wn%VWN] + v_bm
 __kernel
 __attribute__((reqd_work_group_size(16, 4, 1)))
 __attribute__((vec_type_hint(Dtype4)))
-void conv2_forward(__global const Dtype* __restrict im_in, __global const Dtype* __restrict wg, __global const Dtype* __restrict bias, __global Dtype* __restrict im_out) {
+void conv2_forward(__global const Dtype* __restrict im_in, __global const Dtype* __restrict wg, __global Dtype* __restrict im_out, __global const Dtype* __restrict bias) {
 const int tidn = get_local_id(0);
 const int tidm = get_local_id(1);
 const int offN = TSN*get_group_id(0);
@@ -822,7 +822,7 @@ Cptr[globalRow * N + globalCol] = ((Dtype*)(&(Creg[wm][wn/VWN])))[wn%VWN] + v_bm
 __kernel
 __attribute__((reqd_work_group_size(16, 4, 1)))
 __attribute__((vec_type_hint(Dtype4)))
-void conv3_forward(__global const Dtype* __restrict im_in, __global const Dtype* __restrict wg, __global const Dtype* __restrict bias, __global Dtype* __restrict im_out) {
+void conv3_forward(__global const Dtype* __restrict im_in, __global const Dtype* __restrict wg, __global Dtype* __restrict im_out, __global const Dtype* __restrict bias) {
 const int tidn = get_local_id(0);
 const int tidm = get_local_id(1);
 const int offN = TSN*get_group_id(0);
@@ -4074,11 +4074,11 @@ Cptr[globalRow * N + globalCol] = ((Dtype*)(&(Creg[wm][wn/VWN])))[wn%VWN];
 #ifdef v_p_0
 #undef v_p_0
 #endif
-#define v_p_0 1
+#define v_p_0 2
 #ifdef v_p_1
 #undef v_p_1
 #endif
-#define v_p_1 1
+#define v_p_1 2
 #ifdef v_s_0
 #undef v_s_0
 #endif
@@ -4191,7 +4191,7 @@ Cptr[globalRow * N + globalCol] = ((Dtype*)(&(Creg[wm][wn/VWN])))[wn%VWN];
 __kernel
 __attribute__((reqd_work_group_size(16, 4, 1)))
 __attribute__((vec_type_hint(Dtype4)))
-void deconv5_1_forward(__global const Dtype* __restrict im_out, __global const Dtype* __restrict wg, __global const Dtype* __restrict bias, __global Dtype* __restrict im_in) {
+void deconv5_1_forward(__global const Dtype* __restrict im_out, __global const Dtype* __restrict wg, __global Dtype* __restrict im_in, __global const Dtype* __restrict bias) {
 const int tidn = get_local_id(0);
 const int tidm = get_local_id(1);
 const int offN = TSN*get_group_id(0);
@@ -4231,6 +4231,8 @@ if ((offM + row) < M && tiledIndex < K) {
 Asub[row][col] = Aptr[kidx + (v_fout / v_g * v_ks) * midx];
 } else {
 Asub[row][col] = 0.0;
+}
+}
 }
 {
 #pragma unroll 4
@@ -4392,11 +4394,11 @@ Cptr[globalRow * N + globalCol] = ((Dtype*)(&(Creg[wm][wn/VWN])))[wn%VWN] + v_bm
 #ifdef v_p_0
 #undef v_p_0
 #endif
-#define v_p_0 1
+#define v_p_0 2
 #ifdef v_p_1
 #undef v_p_1
 #endif
-#define v_p_1 1
+#define v_p_1 2
 #ifdef v_s_0
 #undef v_s_0
 #endif
@@ -4509,7 +4511,7 @@ Cptr[globalRow * N + globalCol] = ((Dtype*)(&(Creg[wm][wn/VWN])))[wn%VWN] + v_bm
 __kernel
 __attribute__((reqd_work_group_size(16, 4, 1)))
 __attribute__((vec_type_hint(Dtype4)))
-void deconv5_2_forward(__global const Dtype* __restrict im_out, __global const Dtype* __restrict wg, __global const Dtype* __restrict bias, __global Dtype* __restrict im_in) {
+void deconv5_2_forward(__global const Dtype* __restrict im_out, __global const Dtype* __restrict wg, __global Dtype* __restrict im_in, __global const Dtype* __restrict bias) {
 const int tidn = get_local_id(0);
 const int tidm = get_local_id(1);
 const int offN = TSN*get_group_id(0);
@@ -4549,6 +4551,8 @@ if ((offM + row) < M && tiledIndex < K) {
 Asub[row][col] = Aptr[kidx + (v_fout / v_g * v_ks) * midx];
 } else {
 Asub[row][col] = 0.0;
+}
+}
 }
 {
 #pragma unroll 4
@@ -4827,7 +4831,7 @@ Cptr[globalRow * N + globalCol] = ((Dtype*)(&(Creg[wm][wn/VWN])))[wn%VWN] + v_bm
 __kernel
 __attribute__((reqd_work_group_size(16, 4, 1)))
 __attribute__((vec_type_hint(Dtype4)))
-void deconv5_3_forward(__global const Dtype* __restrict im_out, __global const Dtype* __restrict wg, __global const Dtype* __restrict bias, __global Dtype* __restrict im_in) {
+void deconv5_3_forward(__global const Dtype* __restrict im_out, __global const Dtype* __restrict wg, __global Dtype* __restrict im_in, __global const Dtype* __restrict bias) {
 const int tidn = get_local_id(0);
 const int tidm = get_local_id(1);
 const int offN = TSN*get_group_id(0);
@@ -4867,6 +4871,8 @@ if ((offM + row) < M && tiledIndex < K) {
 Asub[row][col] = Aptr[kidx + (v_fout / v_g * v_ks) * midx];
 } else {
 Asub[row][col] = 0.0;
+}
+}
 }
 {
 #pragma unroll 4

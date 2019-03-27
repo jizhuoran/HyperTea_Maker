@@ -14,8 +14,8 @@ class LibdnnInfo
 public:
   LibdnnInfo(bool bias_term, int group, std::string name, std::string type,
   			 std::vector<int> in_shape, std::vector<int> out_shape,
-  			 std::vector<int> kernel, std::vector<int> pad,
-  			 std::vector<int> stride, std::vector<int> dilation) { 
+  			 std::vector<int> kernel, std::vector<int> stride,
+  			 std::vector<int> pad, std::vector<int> dilation) { 
 
 
   	name_ = name;
@@ -38,15 +38,15 @@ public:
 	skip_range_check_ = true;
 
 	for (int i = 0; i < spatial_dims; ++i) {
-	kernel_shape_.push_back(kernel[i]);
-	pad_.push_back(pad[i]);
-	if (pad_[i] > 0) {
-	  skip_range_check_ = false;
-	}
-	stride_.push_back(stride[i]);
-	dilation_.push_back(dilation[i]);
-	im_in_shape_.push_back(in_shape[dims - spatial_dims + i]);
-	im_out_shape_.push_back(out_shape[dims - spatial_dims + i]);
+  	kernel_shape_.push_back(kernel[i]);
+  	pad_.push_back(pad[i]);
+  	if (pad_[i] > 0) {
+  	  skip_range_check_ = false;
+  	}
+  	stride_.push_back(stride[i]);
+  	dilation_.push_back(dilation[i]);
+  	im_in_shape_.push_back(in_shape[dims - spatial_dims + i]);
+  	im_out_shape_.push_back(out_shape[dims - spatial_dims + i]);
 	}
 
   }

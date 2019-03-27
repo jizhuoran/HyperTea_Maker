@@ -142,6 +142,14 @@ private:
 	std::string copy_weight_cpu(std::string net_name);
 	std::string copy_weight_gpu(std::string net_name);
 
+
+
+	std::map<std::string, std::string> name_map;
+	void map_split_name_back();
+	std::map<std::string, int> get_names_max_refer_time();
+
+
+
 	// std::stringstream op_run;
 	std::vector<std::string> op_run;
 

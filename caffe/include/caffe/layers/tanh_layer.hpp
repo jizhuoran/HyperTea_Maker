@@ -29,8 +29,8 @@ class TanHLayer : public NeuronLayer<Dtype> {
 
  protected:
 
-  // std::string get_cpu_signature(const vector<Blob<Dtype>*>& bottom,
-    // const vector<Blob<Dtype>*>& top);
+  std::string get_cpu_signature(const vector<Blob<Dtype>*>& bottom,
+    const vector<Blob<Dtype>*>& top);
   
   /**
    * @param bottom input Blob vector (length 1)

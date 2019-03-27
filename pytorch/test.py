@@ -11,18 +11,39 @@ im = np.array(cv2.imread("HKU.jpg"))
 im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
 im = im.transpose(2,0,1)
 
+# im = np.concatenate((im, im), axis=0)
+
+print(im.shape)
+
 
 model = Model().train()
-# model.load_state_dict(torch.load('styte_net'))
+model.load_state_dict(torch.load('styte_net'))
 
-genetator = HyperteaGenerator(model)
-genetator.forward_to_collect_info(torch.tensor(im.reshape(1,3,512,512), dtype = torch.float))
+precision = 'float'
 
-cpu_code = '''
+
+genetator = HyperteaGenerator(model, torch.tensor(im.reshape(1,3,512,512), dtype = torch.float), precision)
+# genetator.forward_to_collect_info()
+
+
+output = genetator.get_net_output()
+
+# print(output.reshape(3, 512, 512).detach().numpy())
+
+img = output.reshape(3, 512, 512).detach().numpy().transpose(1,2,0)
+
+img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+
+
+cv2.imwrite('output.jpg', img)
+
+
+
+cpu_code = f'''
     
-    void inference( std::vector<float> &data_from_user, std::vector<float> &data_to_user) {
+    void inference( std::vector<{precision}> &data_from_user, std::vector<{precision}> &data_to_user) {{
         
-        TensorCPU<float> data(data_from_user);
+        TensorCPU<{precision}> data(data_from_user);
 
         auto temp = bn1(elu1(conv1(data)));
         temp = bn2(elu2(conv2(temp)));
@@ -44,15 +65,15 @@ cpu_code = '''
 
         hypertea_copy(data_to_user.size(), temp.data(), data_to_user.data());
 
-    }
+    }}
 '''
 
 
-gpu_code = '''
+gpu_code = f'''
     
-    void inference( std::vector<float> &data_from_user, std::vector<float> &data_to_user) {
+    void inference( std::vector<{precision}> &data_from_user, std::vector<{precision}> &data_to_user) {{
         
-        TensorGPU<float> data(data_from_user);
+        TensorGPU<{precision}> data(data_from_user);
 
         auto temp = bn1(elu1(conv1(data)));
         temp = bn2(elu2(conv2(temp)));
@@ -74,10 +95,10 @@ gpu_code = '''
 
         OPENCL_CHECK(clEnqueueReadBuffer(OpenCLHandler::Get().commandQueue, temp.immutable_data(), CL_TRUE, 0, data_to_user.size() * sizeof(data_to_user[0]), data_to_user.data(), 0, NULL, NULL));
 
-    }
+    }}
 '''
 
-print(genetator.hypertea_gpu(gpu_code))
+print(genetator.hypertea_gpu(gpu_code, 'new_net'))
 
 
 

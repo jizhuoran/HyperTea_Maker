@@ -139,15 +139,15 @@ std::string BaseConvolutionLayer<Dtype>::get_gpu_signature(const vector<Blob<Dty
 
   for (int i = 0; i < this->num_spatial_axes_; ++i) {
       kernel_vec.push_back(kernel_shape_data[i]);
-      pad_vec.push_back(pad_data[i]);
       stride_vec.push_back(stride_data[i]);
+      pad_vec.push_back(pad_data[i]);
       dilation_vec.push_back(dilation_data[i]);
   }
 
   LibdnnInfo info(this->bias_term_, this->group_, layer_name, this->type(),
                   bottom[0]->shape(), top[0]->shape(),
-                  kernel_vec, pad_vec,
-                  stride_vec, dilation_vec);
+                  kernel_vec, stride_vec, 
+                  pad_vec, dilation_vec);
 
 
   hypertea_func::Get().hypertea_libdnn << info.generate_opencl_code() << std::endl;
@@ -160,7 +160,7 @@ std::string BaseConvolutionLayer<Dtype>::get_gpu_signature(const vector<Blob<Dty
   std::stringstream signature_ss;
 
   signature_ss << "\"" << layer_name + "_forward" << "\"" << ", "
-               << bottom.size() << ", "
+               << top[0]->count() << ", "
                << weight_name << ", " 
                << bias_name << ", "
                << "std::vector<int> {" << info.rtsn_ << ", " << info.rtsm_ << ", " << 1 << "}" << ", "

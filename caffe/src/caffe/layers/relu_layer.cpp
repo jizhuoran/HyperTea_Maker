@@ -10,8 +10,9 @@ std::string ReLULayer<Dtype>::get_cpu_signature(const vector<Blob<Dtype>*>& bott
     const vector<Blob<Dtype>*>& top) {
   
   std::stringstream signature_ss;
+  std::string inplace = bottom[0] == top[0] ? "IN_PLACE":"NOT_INPLACE";
 
-  signature_ss << this->layer_param_.relu_param().negative_slope();
+  signature_ss << this->layer_param_.relu_param().negative_slope() << ", " << inplace;
 
   return signature_ss.str();
 

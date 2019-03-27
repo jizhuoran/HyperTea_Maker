@@ -281,10 +281,10 @@ std::string LibdnnInfo::generate_accreg_init(bool dterm, bool load) {
 	  ss << "void " + name + "(";
 	  ss << "__global const Dtype* __restrict im_in, ";
 	  ss << "__global const Dtype* __restrict wg, ";
-	  if (bias_term_) {
-	    ss << "__global const Dtype* __restrict bias, ";
-	  }
 	  ss << "__global Dtype* __restrict im_out";
+	  if (bias_term_) {
+	    ss << ", __global const Dtype* __restrict bias";
+	  }
 	  ss << ") {" << std::endl;
 
 	  // Thread identifiers
@@ -516,7 +516,7 @@ std::string LibdnnInfo::generate_accreg_init(bool dterm, bool load) {
 
 
 	for (int i = 0; i < this->pad_.size(); ++i) {
-	  add_def(ss, "v_p_" + std::to_string(i), this->pad_[i]);
+	  add_def(ss, "v_p_" + std::to_string(i), (this->kernel_shape_[i] - 1) * this->dilation_[i] - this->pad_[i]);
 	}
 
   for (int i = 0; i < this->stride_.size(); ++i) {
@@ -603,10 +603,10 @@ std::string LibdnnInfo::generate_accreg_init(bool dterm, bool load) {
   ss << "void " + name + "(";
   ss << "__global const Dtype* __restrict im_out, ";
   ss << "__global const Dtype* __restrict wg, ";
-  if (this->bias_term_) {
-    ss << "__global const Dtype* __restrict bias, ";
-  }
   ss << "__global Dtype* __restrict im_in";
+  if (this->bias_term_) {
+    ss << ", __global const Dtype* __restrict bias";
+  }
   ss << ") {" << std::endl;
 
   // Thread identifiers
@@ -688,7 +688,9 @@ std::string LibdnnInfo::generate_accreg_init(bool dterm, bool load) {
     ss << "} else {" << std::endl;  // M-K-Guard
     ss << "Asub[row][col] = 0.0;" << std::endl;
     ss << "}" << std::endl;
-
+  
+  ss << "}" << std::endl;
+  ss << "}" << std::endl;  // Scoping for loading A
 
 
   // Load one tile of B into local memory
