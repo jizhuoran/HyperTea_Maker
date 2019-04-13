@@ -38,10 +38,11 @@ class NetInfo(object):
             ),
 
             torch.nn.modules.batchnorm.BatchNorm2d:partial(
-                BatchNormHooker.native_batch_norm_hooker, 
+                BatchNormHooker.MIOpen_batch_norm_hooker, 
                 params = self.parameters_, 
-                declare = self.declarations_, 
-                shift_factor = ''#', 64.0, 32.0'
+                declare = self.declarations_,
+                opencl_collector = self.MIOpen_batchnorm_kernels
+                # shift_factor = ''#', 64.0, 32.0'
             ),
             
             torch.nn.modules.activation.ELU:partial(
