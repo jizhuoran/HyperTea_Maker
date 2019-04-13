@@ -7,6 +7,7 @@ from MIOBatchNorm import MIOBatchNormGenerator
 from activation_hooker import ActivationHooker
 from conv_hooker import ConvHooker
 from batchnorm_hooker import BatchNormHooker
+from rnn_hooker import RNNHooker
 
 class NetInfo(object):
     """docstring for NetInfo"""
@@ -43,6 +44,21 @@ class NetInfo(object):
                 declare = self.declarations_,
                 opencl_collector = self.MIOpen_batchnorm_kernels
                 # shift_factor = ''#', 64.0, 32.0'
+            ),
+
+            torch.nn.modules.rnn.LSTM:partial(
+                RNNHooker.LSTM_hooker, 
+                params = self.parameters_, 
+                declare = self.declarations_, 
+                precision = self.precision
+            ),
+
+
+            torch.nn.modules.rnn.GRU:partial(
+                RNNHooker.GRU_hooker, 
+                params = self.parameters_, 
+                declare = self.declarations_, 
+                precision = self.precision
             ),
             
             torch.nn.modules.activation.ELU:partial(
