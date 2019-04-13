@@ -59,8 +59,6 @@ class LSTMClassifier(nn.Module):
         self.deconv3    = nn.ConvTranspose2d(32, 3, 9, stride=1, padding=4, output_padding=0, groups=1, bias=True)
         self.de_tanh3   = nn.Tanh()
 
-        # self.scale_weight = torch.tensor(scale_weight, dtype = torch.float)
-        # self.scale_bias = torch.tensor(scale_bias, dtype = torch.float)
 
     def forward(self, data):
 
