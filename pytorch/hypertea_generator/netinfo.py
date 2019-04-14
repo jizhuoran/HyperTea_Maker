@@ -25,14 +25,14 @@ class NetInfo(object):
 
         self.hooker_map = {
             torch.nn.modules.conv.Conv2d:partial(
-                ConvHooker.native_conv_hooker, 
+                ConvHooker.libdnn_conv_hooker, 
                 params = self.parameters_, 
                 declare = self.declarations_, 
                 opencl_collector = self.libdnn_conv_kernels
             ),
             
             torch.nn.modules.conv.ConvTranspose2d:partial(
-                ConvHooker.native_conv_hooker, 
+                ConvHooker.libdnn_conv_hooker, 
                 params = self.parameters_, 
                 declare = self.declarations_, 
                 opencl_collector = self.libdnn_conv_kernels
@@ -88,7 +88,8 @@ class NetInfo(object):
         return self.declarations_, self.parameters_
 
     def get_opencl_kernels(self):
-        return self.libdnn_conv_generator.generate_conv_code(), self.mio_bn_generator.generate_bn_code()
+        return [("conv_kernel.cl", self.libdnn_conv_generator.generate_conv_code()), 
+                ("bn_kernel.cl", self.mio_bn_generator.generate_bn_code())]
 
 
     def forward_to_collect_info_(self, input_tensor):

@@ -8,20 +8,19 @@ class ConvHooker(object):
         super(ConvHooker, self).__init__()
     
 
-    def conv_hooker(module, input_data, output_data, op_name, declare, params, opencl_collector):
+    def libdnn_conv_hooker(module, input_data, output_data, op_name, declare, params, opencl_collector):
 
 
         if module.bias is not None:
-            bias_name, bias = op_name+'_bias', module.bias
-            params.append((bias_name, bias))
+            bias_name = '&{}_bias'.format(op_name)
+            params.append((bias_name[1:], module.bias))
         else:
-            bias_name = 'NULL'
+            bias_name = 'nullptr'
 
 
-        weight_name, weight = op_name+'_weight', module.weight
-        params.append((weight_name, weight))
+        weight_name = '&{}_weight'.format(op_name)
+        params.append((weight_name[1:], module.weight))
 
-        groups = module.groups
 
         kernel_shape = list(module.kernel_size)
         stride = list(module.stride)
@@ -34,19 +33,10 @@ class ConvHooker(object):
         input_shape = list(input_data[0].shape)
         output_shape = [len(output_data)] + list(output_data[0].shape)
 
-        force_nd_conv = False
 
-        conv_type = 'DeconvolutionOp' if module.transposed else 'ConvolutionOp'
+        conv_type = 'LibDNNDeconvOp' if module.transposed else 'LibDNNConvOp'
 
-        cpu_signature = '{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}'.format(
-                    weight_name, bias_name, groups, bool2str_(is_1x1), 
-                    list2vecstr_(kernel_shape), list2vecstr_(stride), 
-                    list2vecstr_(padding), list2vecstr_(dilation),
-                    list2vecstr_(input_shape), list2vecstr_(output_shape),
-                    bool2str_(force_nd_conv))
-
-
-        libdnn = Libdnn(op_name+'_forward', groups,
+        libdnn = Libdnn(op_name+'_forward', module.groups,
                                 conv_type, module.bias is not None, 
                                 input_shape, output_shape, 
                                 kernel_shape, padding, stride, dilation)
@@ -54,19 +44,17 @@ class ConvHooker(object):
         opencl_collector += libdnn.generate_libdnn_code()
 
 
-        gpu_signature = '"{}_forward", {}, {}, {}, {}, {}'.format(
+        signature = '"{}_forward", {}, {}, {}, {}, {}'.format(
             op_name, prod_(output_shape), 
             weight_name, bias_name,
-            list2vecstr_(libdnn.local_shape()),
-            list2vecstr_(libdnn.global_shape()))
+            list2vecstr_(libdnn.local_shape(), 'size_t'),
+            list2vecstr_(libdnn.global_shape(), 'size_t'))
 
-        declare.append({'type':conv_type, 'op_name':op_name, 'cpu_signature':cpu_signature, 'gpu_signature':gpu_signature})
+        declare.append({'type':conv_type, 'op_name':op_name, 'signature':signature})
 
 
 
-    
-
-    def native_conv_hooker(module, input_data, output_data, op_name, declare, params, opencl_collector):
+    def native_conv_hooker(module, input_data, output_data, op_name, declare, params):
 
         assert module.groups == 1, "Native deconv only support groups == 1"
 
@@ -104,7 +92,7 @@ class ConvHooker(object):
         )
 
 
-        declare.append({'type':conv_type, 'op_name':op_name, 'signature':signature, 'gpu_signature':signature})
+        declare.append({'type':conv_type, 'op_name':op_name, 'signature':signature})
 
 
         

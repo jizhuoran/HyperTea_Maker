@@ -14,10 +14,7 @@ class BatchNormHooker(object):
         channels = input[0].shape[1]
         spatial_dim = prod_(input[0].shape[2:])
 
-
-
         mean_name = var_name = weight_name = bias_name = 'nullptr'
-
 
         if module.track_running_stats:
             mean_name = '&{}_mean'.format(op_name)
@@ -40,10 +37,7 @@ class BatchNormHooker(object):
             mean_name, var_name,
             weight_name, bias_name)
         
-
-
-
-        declare.append({'type':'BatchNormOp', 'op_name':op_name, 'signature':signature, 'gpu_signature':signature})
+        declare.append({'type':'BatchNormOp', 'op_name':op_name, 'signature':signature})
 
 
     def MIOpen_batch_norm_hooker(module, input, output, op_name, declare, params, opencl_collector):
