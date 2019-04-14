@@ -77,7 +77,7 @@ class Libdnn(object):
             
         self.name = name;
 
-        self.is_deconv = True if op_type == "DeconvolutionOp" else False
+        self.is_deconv = True if op_type == "LibDNNDeconvOp" else False
 
         self.bias_term = bias_term;
         self.bias_multiplier = 0.0 if bias_term is None else 1.0
@@ -793,40 +793,6 @@ void {name}(
 
     def prod_(self, l):
         return reduce(lambda x, y: x*y, l)
-
-
-# temp = Libdnn("deconv1", 1,
-#         "DeconvolutionOp", True, 
-#         [1, 32, 512, 512], [1, 3, 512, 512], 
-#         [9, 9], [4, 4], [1, 1], [1, 1])
-
-
-
-# # # print(temp.generate_gemm_core_(True))
-
-# # print('----------')
-# # print('----------')
-# # print('----------')
-# # print('----------')
-# # print('----------')
-# # print('----------')
-# # # print(temp.generate_accreg_init_(True, False))
-
-
-# # print('----------')
-# # print('----------')
-# # print('----------')
-# # print('----------')
-# # print('----------')
-# # print('----------')
-
-
-# print(temp.deconv_fw_def_())
-# # # print(temp.deconv_fw_def_())
-
-# print(temp.deconv_fw_kernel_("deconv1"))
-
-
 
 
 

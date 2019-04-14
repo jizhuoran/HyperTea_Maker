@@ -7,14 +7,14 @@ from hypertea_generator.netinfo import NetInfo
 
 class HyperteaGenerator(object):
     """docstring for HyperteaGenerator"""
-    def __init__(self, net, input_tensor, precision):
+    def __init__(self, net, input_tensor, precision, libdnn = True):
         super(HyperteaGenerator, self).__init__()
         
         assert precision == 'float' or precision == 'half'
 
         self.precision = precision
 
-        self.net_info_ = NetInfo(net, input_tensor, precision)
+        self.net_info_ = NetInfo(net, input_tensor, precision, libdnn)
 
         self.declarations, self.parameters = self.net_info_.get_declare_with_param()
 

@@ -13,7 +13,7 @@ im = im.transpose(2,0,1)
 
 # im = np.concatenate((im, im), axis=0)
 
-print(im.shape)
+print(im.shape) 
 
 
 model = Model().train()

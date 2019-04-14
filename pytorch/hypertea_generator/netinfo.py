@@ -8,10 +8,11 @@ from hypertea_generator.hookers.activation_hooker import ActivationHooker
 from hypertea_generator.hookers.conv_hooker import ConvHooker
 from hypertea_generator.hookers.batchnorm_hooker import BatchNormHooker
 from hypertea_generator.hookers.rnn_hooker import RNNHooker
+from hypertea_generator.hookers.linear_hooker import LinearHooker
 
 class NetInfo(object):
     """docstring for NetInfo"""
-    def __init__(self, net, input_tensor, precision):
+    def __init__(self, net, input_tensor, precision, libdnn):
         super(NetInfo, self).__init__()
         
         self.net = net
@@ -36,6 +37,10 @@ class NetInfo(object):
                 params = self.parameters_, 
                 declare = self.declarations_, 
                 opencl_collector = self.libdnn_conv_kernels
+            ) if libdnn else partial(
+                ConvHooker.native_conv_hooker, 
+                params = self.parameters_, 
+                declare = self.declarations_, 
             ),
 
             torch.nn.modules.batchnorm.BatchNorm2d:partial(
@@ -45,6 +50,13 @@ class NetInfo(object):
                 # opencl_collector = self.MIOpen_batchnorm_kernels
                 shift_factor = ''#', 64.0, 32.0'
             ),
+
+            torch.nn.modules.linear.Linear:partial(
+                LinearHooker.linear_hooker, 
+                params = self.parameters_, 
+                declare = self.declarations_,
+            ),
+
 
             torch.nn.modules.rnn.LSTM:partial(
                 RNNHooker.LSTM_hooker, 
@@ -68,6 +80,13 @@ class NetInfo(object):
 
             torch.nn.modules.activation.ReLU:partial(
                 ActivationHooker.relu_hooker, 
+                declare = self.declarations_
+
+            ),
+
+            torch.nn.modules.activation.PReLU:partial(
+                ActivationHooker.prelu_hooker, 
+                params = self.parameters_,
                 declare = self.declarations_
             ),
 
@@ -100,6 +119,8 @@ class NetInfo(object):
         for name, module in self.net.named_modules():
             if type(module) in self.hooker_map:
                 module.register_forward_hook(partial(self.hooker_map[type(module)], op_name = name))
+            else:
+                print(type(module))
 
 
     
